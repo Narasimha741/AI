@@ -1,0 +1,66 @@
+from queue import Queue
+
+def is_valid_state(state):
+    m_left, c_left, b_left, m_right, c_right, b_right = state
+
+    # Check if the number of missionaries is greater than or equal to the number of cannibals on each side
+    if (m_left < c_left and m_left > 0) or (m_right < c_right and m_right > 0):
+        return False
+
+    return True
+
+def generate_successors(state):
+    successors = []
+    m_left, c_left, b_left, m_right, c_right, b_right = state
+
+    for m in range(3):
+        for c in range(3):
+            if 0 < m + c <= 2:
+                # Generate possible combinations of missionaries and cannibals
+                if b_left == 1:
+                    new_state = (m_left - m, c_left - c, b_left - 1, m_right + m, c_right + c, b_right + 1)
+                else:
+                    new_state = (m_left + m, c_left + c, b_left + 1, m_right - m, c_right - c, b_right - 1)
+
+                if is_valid_state(new_state):
+                    successors.append(new_state)
+
+    return successors
+
+def bfs_search():
+    initial_state = (3, 3, 1, 0, 0, 0)  # Initial state: (missionaries_left, cannibals_left, boat_left, missionaries_right, cannibals_right, boat_right)
+    goal_state = (0, 0, 0, 3, 3, 1)  # Goal state: (missionaries_left, cannibals_left, boat_left, missionaries_right, cannibals_right, boat_right)
+
+    visited_states = set()
+    queue = Queue()
+    queue.put(initial_state)
+
+    while not queue.empty():
+        current_state = queue.get()
+
+        if current_state == goal_state:
+            print("Solution found:")
+            print_path(current_state)
+            return
+
+        if current_state in visited_states:
+            continue
+
+        visited_states.add(current_state)
+
+        successors = generate_successors(current_state)
+        for successor in successors:
+            if successor not in visited_states:
+                queue.put(successor)
+
+def print_path(state):
+    path = []
+    while state:
+        path.insert(0, state)
+        state = parent.get(state)
+
+    for step in path:
+        print(step)
+
+if __name__ == "__main__":
+    bfs_search()
