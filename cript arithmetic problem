@@ -1,0 +1,33 @@
+def is_valid_assignment(assignment, words, result):
+    # Check if the assignment is valid
+    for word in words + [result]:
+        if assignment[word[0]] == '0':
+            return False
+
+    # Evaluate the expression
+    values = [int(''.join(assignment[c] for c in word)) for word in words]
+    result_value = int(''.join(assignment[c] for c in result))
+
+    return sum(values[:-1]) == result_value
+
+def cryptarithmetic_solver(words, result):
+    letters = set(''.join(words + [result]))
+    if len(letters) > 10:
+        print("Invalid input: More than 10 unique letters.")
+        return
+
+    letters = list(letters)
+    for perm in permutations(range(10), len(letters)):
+        assignment = {letter: str(perm[i]) for i, letter in enumerate(letters)}
+        if is_valid_assignment(assignment, words, result):
+            print("Solution found:")
+            print(assignment)
+            return
+
+    print("No solution found.")
+
+if __name__ == "__main__":
+    words = ["SEND", "MORE"]
+    result = "MONEY"
+
+    cryptarithmetic_solver(words, result)
