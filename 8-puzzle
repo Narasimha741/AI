@@ -1,0 +1,96 @@
+import heapq
+import copy
+
+class PuzzleNode:
+    def __init__(self, state, parent=None, move=None, depth=0):
+        self.state = state
+        self.parent = parent
+        self.move = move
+        self.depth = depth
+
+    def __lt__(self, other):
+        return (self.depth + self.manhattan_distance()) < (other.depth + other.manhattan_distance())
+
+    def __eq__(self, other):
+        return self.state == other.state
+
+    def __hash__(self):
+        return hash(tuple(self.state))
+
+    def manhattan_distance(self):
+        distance = 0
+        goal_state = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]  # Goal state
+        for i in range(3):
+            for j in range(3):
+                if self.state[i][j] != 0:
+                    goal_position = divmod(goal_state[i][j] - 1, 3)
+                    current_position = divmod(self.state[i][j] - 1, 3)
+                    distance += abs(goal_position[0] - current_position[0]) + abs(goal_position[1] - current_position[1])
+        return distance
+
+    def generate_successors(self):
+        successors = []
+        zero_position = None
+        for i in range(3):
+            for j in range(3):
+                if self.state[i][j] == 0:
+                    zero_position = (i, j)
+                    break
+
+        moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Possible moves: right, down, left, up
+
+        for move in moves:
+            new_position = (zero_position[0] + move[0], zero_position[1] + move[1])
+
+            if 0 <= new_position[0] < 3 and 0 <= new_position[1] < 3:
+                new_state = copy.deepcopy(self.state)
+                new_state[zero_position[0]][zero_position[1]] = new_state[new_position[0]][new_position[1]]
+                new_state[new_position[0]][new_position[1]] = 0
+                successors.append(PuzzleNode(new_state, parent=self, move=move, depth=self.depth + 1))
+
+        return successors
+
+def a_star_search(initial_state):
+    initial_node = PuzzleNode(initial_state)
+    open_set = [initial_node]
+    closed_set = set()
+
+    while open_set:
+        current_node = heapq.heappop(open_set)
+
+        if current_node.state == [[1, 2, 3], [4, 5, 6], [7, 8, 0]]:
+            return get_solution_path(current_node)
+
+        closed_set.add(current_node)
+
+        successors = current_node.generate_successors()
+        for successor in successors:
+            if successor not in closed_set and successor not in open_set:
+                heapq.heappush(open_set, successor)
+
+    return None
+
+def get_solution_path(node):
+    path = []
+    while node:
+        path.insert(0, {"state": node.state, "move": node.move})
+        node = node.parent
+    return path
+
+def print_solution_path(path):
+    for step in path:
+        print("Move:", step["move"])
+        print("State:")
+        for row in step["state"]:
+            print(row)
+        print("\n")
+
+if __name__ == "__main__":
+    initial_state = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]  # Example initial state
+    solution_path = a_star_search(initial_state)
+
+    if solution_path:
+        print("Solution found!")
+        print_solution_path(solution_path)
+    else:
+        print("No solution found.")
